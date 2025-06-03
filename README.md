@@ -37,52 +37,7 @@
 - 🐍 **Python 3.8+**
 - 📦 **pip** (Python package manager)
 - 🗄️ **PostgreSQL** (for production)
-
-### ⚡ Installation
-
-1. **📥 Clone the repository**
-   \`\`\`bash
-   git clone https://github.com/yourusername/django-notebook-app.git      //example
-   cd django-notebook-app
-   \`\`\`
-
-2. **🔧 Create virtual environment**
-   \`\`\`bash
-   python -m venv notebook_env
-   
-   # Windows
-   notebook_env\Scripts\activate
-   
-   # macOS/Linux
-   source notebook_env/bin/activate
-   \`\`\`
-
-3. **📦 Install dependencies**
-   \`\`\`bash
-   pip install -r requirements.txt
-   \`\`\`
-
-4. **🚀 Run setup script**
-   \`\`\`bash
-   python setup_complete.py
-   \`\`\`
-
-5. **👤 Create superuser**
-   \`\`\`bash
-   python manage.py createsuperuser
-   \`\`\`
-
-6. **▶️ Start development server**
-   \`\`\`bash
-   python manage.py runserver
-   \`\`\`
-
-7. **🌐 Open your browser**
-   \`\`\`
-   http://127.0.0.1:8000
-   \`\`\`
-
----
+- 
 
 ## 📁 Project Structure
 
@@ -187,7 +142,6 @@ python manage.py migrate
 python fix_profiles.py
 \`\`\`
 </details>
----
 
 ## 🙏 Acknowledgments
 
