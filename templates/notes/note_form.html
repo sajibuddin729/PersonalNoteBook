@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+    {% if object %}Edit Note{% else %}New Note{% endif %} - Personal Notebook
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i class="bi bi-{% if object %}pencil{% else %}plus-circle{% endif %} me-2"></i>
+                    {% if object %}Edit Note{% else %}Create New Note{% endif %}
+                </h1>
+                <a href="{% url 'notes:dashboard' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-2"></i>
+                    Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="post" id="note-form">
+                        {% csrf_token %}
+                        {% crispy form %}
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Initialize Quill Editor
+    var quill = new Quill('#note-editor', {
+        theme: 'snow',
+        modules: {
+            toolbar: [
+                [{ 'header': [1, 2, 3, false] }],
+                ['bold', 'italic', 'underline', 'strike'],
+                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                [{ 'color': [] }, { 'background': [] }],
+                ['link', 'blockquote', 'code-block'],
+                ['clean']
+            ]
+        },
+        placeholder: 'Start writing your note...'
+    });
+    
+    // Set initial content if editing
+    {% if object %}
+        quill.root.innerHTML = `{{ object.content|escapejs }}`;
+    {% endif %}
+    
+    // Update hidden textarea on form submit
+    document.getElementById('note-form').addEventListener('submit', function() {
+        document.querySelector('textarea[name="content"]').value = quill.root.innerHTML;
+    });
+    
+    // Template selection
+    const templateSelect = document.querySelector('select[name="template"]');
+    if (templateSelect) {
+        templateSelect.addEventListener('change', function() {
+            if (this.value) {
+                // In a real implementation, you would fetch template content via AJAX
+                // For now, we'll just show a confirmation
+                if (confirm('Load template content? This will replace current content.')) {
+                    // Fetch and load template content
+                    loadTemplate(this.value);
+                }
+            }
+        });
+    }
+    
+    function loadTemplate(templateId) {
+        // This would be an AJAX call to get template content
+        // For demonstration, we'll use placeholder content
+        const templates = {
+            'meeting': `
+                <h2>Meeting Notes</h2>
+                <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
+                <p><strong>Attendees:</strong> </p>
+                <p><strong>Agenda:</strong></p>
+                <ul><li></li></ul>
+                <p><strong>Action Items:</strong></p>
+                <ul><li></li></ul>
+            `,
+            'journal': `
+                <h2>Daily Journal - ${new Date().toLocaleDateString()}</h2>
+                <p><strong>Today's Goals:</strong></p>
+                <ul><li></li></ul>
+                <p><strong>What happened today:</strong></p>
+                <p><strong>Reflections:</strong></p>
+                <p><strong>Tomorrow's priorities:</strong></p>
+                <ul><li></li></ul>
+            `,
+            'task': `
+                <h2>Task List</h2>
+                <p><strong>Priority Tasks:</strong></p>
+                <ul><li>☐ </li></ul>
+                <p><strong>Regular Tasks:</strong></p>
+                <ul><li>☐ </li></ul>
+                <p><strong>Completed:</strong></p>
+                <ul><li>✓ </li></ul>
+            `
+        };
+        
+        const templateType = document.querySelector('select[name="template"] option:checked').textContent.toLowerCase();
+        if (templates[templateType.split(' ')[0]]) {
+            quill.root.innerHTML = templates[templateType.split(' ')[0]];
+        }
+    }
+    
+    // Auto-save functionality (optional)
+    let autoSaveTimeout;
+    quill.on('text-change', function() {
+        clearTimeout(autoSaveTimeout);
+        autoSaveTimeout = setTimeout(function() {
+            // Auto-save logic here
+            console.log('Auto-saving...');
+        }, 5000); // Auto-save after 5 seconds of inactivity
+    });
+</script>
+{% endblock %}

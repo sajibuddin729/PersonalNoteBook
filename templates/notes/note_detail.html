@@ -1,0 +1,277 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ note.title }} - Personal Notebook{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-1">{{ note.title }}</h1>
+                    <div class="d-flex align-items-center gap-2">
+                        {% if note.category %}
+                            <span class="badge" style="background-color: {{ note.category.color }};">
+                                {{ note.category.name }}
+                            </span>
+                        {% endif %}
+                        <span class="badge bg-{{ note.priority }}">
+                            {{ note.get_priority_display }}
+                        </span>
+                        {% if note.is_pinned %}
+                            <span class="badge bg-warning">
+                                <i class="bi bi-pin-fill me-1"></i>Pinned
+                            </span>
+                        {% endif %}
+                        {% if note.is_favorite %}
+                            <span class="badge bg-danger">
+                                <i class="bi bi-heart-fill me-1"></i>Favorite
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="btn-group">
+                    <a href="{% url 'notes:note_edit' note.pk %}" class="btn btn-primary">
+                        <i class="bi bi-pencil me-2"></i>
+                        Edit
+                    </a>
+                    <button type="button" class="btn btn-outline-secondary dropdown-toggle dropdown-toggle-split" 
+                            data-bs-toggle="dropdown">
+                        <span class="visually-hidden">Toggle Dropdown</span>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <button class="dropdown-item" onclick="toggleFavorite('{{ note.pk }}')" 
+                                    data-note-id="{{ note.pk }}" data-action="favorite">
+                                <i class="bi bi-heart{% if note.is_favorite %}-fill text-danger{% endif %} me-2"></i>
+                                {% if note.is_favorite %}Remove from Favorites{% else %}Add to Favorites{% endif %}
+                            </button>
+                        </li>
+                        <li>
+                            <button class="dropdown-item" onclick="togglePin('{{ note.pk }}')" 
+                                    data-note-id="{{ note.pk }}" data-action="pin">
+                                <i class="bi bi-pin{% if note.is_pinned %}-fill text-warning{% endif %} me-2"></i>
+                                {% if note.is_pinned %}Unpin Note{% else %}Pin Note{% endif %}
+                            </button>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#shareModal">
+                                <i class="bi bi-share me-2"></i>Share Note
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item text-danger" href="{% url 'notes:note_delete' note.pk %}">
+                                <i class="bi bi-trash me-2"></i>Delete
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Note Content -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="note-content">
+                        {{ note.content|safe }}
+                    </div>
+                </div>
+                <div class="card-footer text-muted">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <small>
+                                <i class="bi bi-clock me-1"></i>
+                                Created: {{ note.created_at|date:"M d, Y H:i" }}
+                            </small>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <small>
+                                <i class="bi bi-pencil me-1"></i>
+                                Updated: {{ note.updated_at|date:"M d, Y H:i" }}
+                            </small>
+                        </div>
+                    </div>
+                    {% if note.word_count %}
+                        <div class="mt-2">
+                            <small>
+                                <i class="bi bi-file-text me-1"></i>
+                                Word count: {{ note.word_count }}
+                            </small>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Tags -->
+            {% if note.tags.all %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="bi bi-tags me-2"></i>
+                            Tags
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        {% for tag in note.tags.all %}
+                            <span class="badge bg-light text-dark me-2 mb-2">#{{ tag.name }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+            
+            <!-- Attachments -->
+            {% if attachments %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="bi bi-paperclip me-2"></i>
+                            Attachments
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        {% for attachment in attachments %}
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-file-earmark me-2"></i>
+                                <a href="{{ attachment.file.url }}" target="_blank">{{ attachment.file_name }}</a>
+                                <small class="text-muted ms-2">({{ attachment.file_size_mb }} MB)</small>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="col-lg-4">
+            <!-- Note Info -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bi bi-info-circle me-2"></i>
+                        Note Information
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>Author:</strong><br>
+                        <small>{{ note.user.full_name }}</small>
+                    </div>
+                    {% if note.category %}
+                        <div class="mb-3">
+                            <strong>Category:</strong><br>
+                            <span class="badge" style="background-color: {{ note.category.color }};">
+                                {{ note.category.name }}
+                            </span>
+                        </div>
+                    {% endif %}
+                    <div class="mb-3">
+                        <strong>Priority:</strong><br>
+                        <span class="badge bg-{{ note.priority }}">{{ note.get_priority_display }}</span>
+                    </div>
+                    {% if note.reminder_date %}
+                        <div class="mb-3">
+                            <strong>Reminder:</strong><br>
+                            <small>{{ note.reminder_date|date:"M d, Y H:i" }}</small>
+                        </div>
+                    {% endif %}
+                    {% if note.is_shared %}
+                        <div class="mb-3">
+                            <strong>Shared with:</strong><br>
+                            {% for share in shares %}
+                                <small class="d-block">{{ share.shared_with.full_name }} ({{ share.get_permission_display }})</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Version History -->
+            {% if versions %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="bi bi-clock-history me-2"></i>
+                            Version History
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        {% for version in versions %}
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div>
+                                    <small><strong>Version {{ version.version_number }}</strong></small><br>
+                                    <small class="text-muted">{{ version.created_at|date:"M d, Y H:i" }}</small>
+                                </div>
+                                <button class="btn btn-sm btn-outline-secondary" 
+                                        onclick="viewVersion({{ version.version_number }})">
+                                    View
+                                </button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+            
+            <!-- Quick Actions -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bi bi-lightning me-2"></i>
+                        Quick Actions
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'notes:dashboard' %}" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-arrow-left me-2"></i>
+                            Back to Dashboard
+                        </a>
+                        <a href="{% url 'notes:note_create' %}" class="btn btn-outline-success btn-sm">
+                            <i class="bi bi-plus-circle me-2"></i>
+                            Create New Note
+                        </a>
+                        <button class="btn btn-outline-info btn-sm" onclick="printNote()">
+                            <i class="bi bi-printer me-2"></i>
+                            Print Note
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Share Modal -->
+<div class="modal fade" id="shareModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Share Note</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Share "{{ note.title }}" with other users.</p>
+                <!-- Share form would go here -->
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    Note sharing feature coming soon!
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function printNote() {
+    window.print();
+}
+
+function viewVersion(versionNumber) {
+    alert('Version ' + versionNumber + ' viewer coming soon!');
+}
+</script>
+{% endblock %}

@@ -1,0 +1,279 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Personal Notebook{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-1">
+                        <i class="bi bi-house-door me-2"></i>
+                        Dashboard
+                    </h1>
+                    <p class="text-muted mb-0">Manage your personal notes and ideas</p>
+                </div>
+                <a href="{% url 'notes:note_create' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-2"></i>
+                    New Note
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">{{ total_notes }}</h4>
+                            <p class="mb-0">Total Notes</p>
+                        </div>
+                        <i class="bi bi-journal-text display-6"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">{{ pinned_notes }}</h4>
+                            <p class="mb-0">Pinned</p>
+                        </div>
+                        <i class="bi bi-pin display-6"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">{{ favorite_notes }}</h4>
+                            <p class="mb-0">Favorites</p>
+                        </div>
+                        <i class="bi bi-heart display-6"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">{{ categories.count }}</h4>
+                            <p class="mb-0">Categories</p>
+                        </div>
+                        <i class="bi bi-folder display-6"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Search and Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-4">
+                            <div class="search-container">
+                                <input type="text" name="search" class="form-control" 
+                                       id="search-input" placeholder="Search notes..." 
+                                       value="{{ request.GET.search }}">
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <select name="category" class="form-select">
+                                <option value="">All Categories</option>
+                                {% for category in categories %}
+                                    <option value="{{ category.id }}" 
+                                            {% if request.GET.category == category.id|stringformat:"s" %}selected{% endif %}>
+                                        {{ category.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <select name="priority" class="form-select">
+                                <option value="">All Priorities</option>
+                                <option value="urgent" {% if request.GET.priority == 'urgent' %}selected{% endif %}>Urgent</option>
+                                <option value="high" {% if request.GET.priority == 'high' %}selected{% endif %}>High</option>
+                                <option value="medium" {% if request.GET.priority == 'medium' %}selected{% endif %}>Medium</option>
+                                <option value="low" {% if request.GET.priority == 'low' %}selected{% endif %}>Low</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-outline-primary w-100">
+                                <i class="bi bi-search me-1"></i>
+                                Search
+                            </button>
+                        </div>
+                        <div class="col-md-2">
+                            <a href="{% url 'notes:dashboard' %}" class="btn btn-outline-secondary w-100">
+                                <i class="bi bi-arrow-clockwise me-1"></i>
+                                Reset
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Notes Grid -->
+    <div class="row">
+        {% for note in notes %}
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card note-card h-100 {% if note.is_pinned %}pinned{% elif note.is_favorite %}favorite{% endif %}">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            {% if note.category %}
+                                <span class="badge me-2" style="background-color: {{ note.category.color }};">
+                                    {{ note.category.name }}
+                                </span>
+                            {% endif %}
+                            <span class="badge bg-{{ note.priority }} priority-badge">
+                                {{ note.get_priority_display }}
+                            </span>
+                        </div>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary" type="button" 
+                                    data-bs-toggle="dropdown">
+                                <i class="bi bi-three-dots"></i>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a class="dropdown-item" href="{{ note.get_absolute_url }}">
+                                        <i class="bi bi-eye me-2"></i>View
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'notes:note_edit' note.pk %}">
+                                        <i class="bi bi-pencil me-2"></i>Edit
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <button class="dropdown-item" onclick="toggleFavorite('{{ note.pk }}')" 
+                                            data-note-id="{{ note.pk }}" data-action="favorite">
+                                        <i class="bi bi-heart{% if note.is_favorite %}-fill text-danger{% endif %} me-2"></i>
+                                        {% if note.is_favorite %}Remove from Favorites{% else %}Add to Favorites{% endif %}
+                                    </button>
+                                </li>
+                                <li>
+                                    <button class="dropdown-item" onclick="togglePin('{{ note.pk }}')" 
+                                            data-note-id="{{ note.pk }}" data-action="pin">
+                                        <i class="bi bi-pin{% if note.is_pinned %}-fill text-warning{% endif %} me-2"></i>
+                                        {% if note.is_pinned %}Unpin Note{% else %}Pin Note{% endif %}
+                                    </button>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item text-danger" href="{% url 'notes:note_delete' note.pk %}">
+                                        <i class="bi bi-trash me-2"></i>Delete
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <a href="{{ note.get_absolute_url }}" class="text-decoration-none">
+                                {{ note.title|truncatechars:50 }}
+                            </a>
+                        </h5>
+                        <p class="card-text text-muted">
+                            {{ note.content|striptags|truncatechars:120 }}
+                        </p>
+                        
+                        {% if note.tags.all %}
+                            <div class="mb-2">
+                                {% for tag in note.tags.all %}
+                                    <span class="badge bg-light text-dark me-1">#{{ tag.name }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="card-footer text-muted d-flex justify-content-between align-items-center">
+                        <small>
+                            <i class="bi bi-clock me-1"></i>
+                            {{ note.updated_at|timesince }} ago
+                        </small>
+                        <div>
+                            {% if note.is_pinned %}
+                                <i class="bi bi-pin-fill text-warning me-1" title="Pinned"></i>
+                            {% endif %}
+                            {% if note.is_favorite %}
+                                <i class="bi bi-heart-fill text-danger me-1" title="Favorite"></i>
+                            {% endif %}
+                            {% if note.is_shared %}
+                                <i class="bi bi-share text-info me-1" title="Shared"></i>
+                            {% endif %}
+                            {% if note.reminder_date %}
+                                <i class="bi bi-alarm text-warning me-1" title="Has Reminder"></i>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <div class="text-center py-5">
+                    <i class="bi bi-journal-x display-1 text-muted"></i>
+                    <h3 class="mt-3">No notes found</h3>
+                    <p class="text-muted">Start by creating your first note!</p>
+                    <a href="{% url 'notes:note_create' %}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle me-2"></i>
+                        Create Note
+                    </a>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Pagination -->
+    {% if is_paginated %}
+        <div class="row">
+            <div class="col-12">
+                <nav aria-label="Notes pagination">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.priority %}&priority={{ request.GET.priority }}{% endif %}">First</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.priority %}&priority={{ request.GET.priority }}{% endif %}">Previous</a>
+                            </li>
+                        {% endif %}
+                        
+                        <li class="page-item active">
+                            <span class="page-link">
+                                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                            </span>
+                        </li>
+                        
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.priority %}&priority={{ request.GET.priority }}{% endif %}">Next</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.priority %}&priority={{ request.GET.priority }}{% endif %}">Last</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
