@@ -26,21 +26,6 @@
 - ✅ **Export Options** - Export to various formats
 - ✅ **Voice Notes** - Audio note support
 
----
-
-## 🖼️ Screenshots
-
-<div align="center">
-
-### 🏠 Dashboard
-![Dashboard](https://via.placeholder.com/800x400/667eea/ffffff?text=Dashboard+Screenshot)
-
-### ✏️ Note Editor
-![Note Editor](https://via.placeholder.com/800x400/764ba2/ffffff?text=Note+Editor+Screenshot)
-
-### 👤 Profile Page
-![Profile](https://via.placeholder.com/800x400/28a745/ffffff?text=Profile+Page+Screenshot)
-
 </div>
 
 ---
@@ -57,7 +42,7 @@
 
 1. **📥 Clone the repository**
    \`\`\`bash
-   git clone https://github.com/yourusername/django-notebook-app.git
+   git clone https://github.com/yourusername/django-notebook-app.git      //example
    cd django-notebook-app
    \`\`\`
 
@@ -217,7 +202,7 @@ python fix_profiles.py
 
 **⭐ Star this repository if you found it helpful!**
 
-** | 📧 [Contact](mailto:sajibuddin729@gmail.com) |
+ | 📧 [Contact](mailto:sajibuddin729@gmail.com) |
 
 ---
 
